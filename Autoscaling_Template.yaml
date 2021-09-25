@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Autoscaling Group Template'
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: "Name of an existing SSH Keypair to access the instance"
+    Default: express-app
+  LatestAmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: '/aws/service/canonical/ubuntu/server/bionic/stable/current/amd6/hvm/ebs-gp2/ami-id'
+  InstanceType:
+    Default: t3.micro
+    Type: String
+    ConstraintDescription: Must be a valid EC2 instance type.
+    Description: Select instance type
+    AllowedValues: 
+      - t2.micro
+      - t2.medium
+      - t3.micro
+      - t3.medium
+  ASGSecurityGroupList:
+    Type: 'List<AWS::EC2::SecurityGroup::Id>'
+    Description: >-
+      A list that contains the EC2 security groups to assign to the Amazon EC2
+      instances in the Auto Scaling group.
+  ScalingMin:
+    Default: '1'
+    AllowedPattern: '([0-9]+)'
+    Type: String
+    Description: The minimum size of the Auto Scaling group.
+  ScalingMax:
+    Default: '2'
+    AllowedPattern: '([0-9]+)'
+    Type: String
+    Description: The maximum size of the Auto Scaling group.
+    ConstraintDescription: Must be a valid integer.
+  DesiredCapacity:
+    Default: '2'
+    AllowedPattern: '([0-9]+)'
+    Type: String
+    Description: Specifies the desired capacity for the Auto Scaling group.
+    ConstraintDescription: Must be a valid integer.
+  AppSubnet:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Subnets for Application
+  HealthCheckGracePeriod:
+    Default: '300'
+    AllowedPattern: '([0-9]+)'
+    Type: String
+    Description: Number of seconds grace during which no autoscaling actions will be taken.
+    ConstraintDescription: Must be a valid integer.
+  HealthCheckType:
+    Default: EC2
+    Type: String
+    Description: Define the type of healthcheck for the AutoScaling group.
+    AllowedValues:
+      - EC2
+      - ELB
+  
+
+Resources:
+  ASGLaunchTemplate: 
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName:  !Sub '${AWS::StackName}-launch-template'
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt 
+            - InstanceRoleInstanceProfile
+            - Arn
+        ImageId: !Ref LatestAmiId
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !Select 
+            - 0
+            - !Ref ASGSecurityGroupList
+        InstanceType: !Ref InstanceType
+        UserData: !Base64 |
+            #!/bin/bash -xe
+            echo "hello world"
+  
+  InstanceRoleInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+  InstanceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: / 
+        
+  InstanceRolePolicies:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: InstanceRole
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'autoscaling:Describe*'
+              - 'cloudformation:Describe*'
+              - 'cloudformation:GetTemplate'
+              - 's3:Get*'
+              - 's3:List*'
+            Resource: '*'
+      Roles:
+        - !Ref InstanceRole
+  
+  AutoScaleGrp:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      MinSize: !Ref ScalingMin
+      MaxSize: !Ref ScalingMax
+      DesiredCapacity: !Ref DesiredCapacity
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ASGLaunchTemplate
+        Version: !GetAtt 
+          - ASGLaunchTemplate
+          - LatestVersionNumber
+      VPCZoneIdentifier: !Ref AppSubnet
+      MetricsCollection:
+        - Granularity: 1Minute
+      HealthCheckGracePeriod: !Ref HealthCheckGracePeriod
+      HealthCheckType: !Ref HealthCheckType
+      Tags:
+        - Key: "Name"
+          Value: "Express-App"
+          PropagateAtLaunch: true
