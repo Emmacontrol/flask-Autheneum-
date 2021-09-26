@@ -1,0 +1,7 @@
+#!/bin/bash
+STATUS="$(sudo systemctl is-active expressapp.service)"
+echo "express-app service status: $STATUS"
+if [ "${STATUS}" = "active" ]; then
+    systemctl stop expressapp.service
+    echo "Stopped express-app service"  
+fi

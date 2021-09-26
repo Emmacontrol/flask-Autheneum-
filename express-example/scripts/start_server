@@ -1,0 +1,10 @@
+#!/bin/bash
+systemctl daemon-reload
+systemctl enable expressapp
+systemctl start expressapp
+
+# Reload Nginx config
+service nginx reload
+
+#Restart Nginx
+service nginx restart

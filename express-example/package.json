@@ -1,0 +1,20 @@
+{
+  "name": "express-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/atheneumpartners/express-example.git"
+  },
+  "author": "Atheneum Partners",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/atheneumpartners/express-example#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1"
+  }
+}

@@ -1,0 +1,13 @@
+[Service]
+User=root
+Type=simple
+
+ExecStart=/bin/sh -c "node index 2>&1 > /home/ubuntu/express-app-api/express-app.log"
+Restart=always
+
+SyslogIdentifier=expressapp
+WorkingDirectory=/home/ubuntu/express-app-api
+EnvironmentFile=/home/ubuntu/express-app-api/env
+
+[Install]
+WantedBy=multi-user.target

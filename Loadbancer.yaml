@@ -75,3 +75,8 @@ Outputs:
     Value: !Ref ALBTargetGroup
     Export:
       Name: !Sub '${AWS::StackName}-ALBTG-ARN'
+  ALBSG:
+    Description: Security Group of the Load Balancer
+    Value: !GetAtt ALBSG.GroupId
+    Export:
+      Name: !Sub '${AWS::StackName}-SG-ID'

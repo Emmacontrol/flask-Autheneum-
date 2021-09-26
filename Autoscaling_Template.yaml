@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: 'Autoscaling Group Template'
 Parameters:
+  VPCID:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Choose the VPCId of your existing VPC
   LoadBalancerStackName:
     Type: String
     Description: The name for corresponding ALB Stack. ASG Template depends on previously created ALB.
@@ -21,11 +24,6 @@ Parameters:
       - t2.medium
       - t3.micro
       - t3.medium
-  ASGSecurityGroupList:
-    Type: 'List<AWS::EC2::SecurityGroup::Id>'
-    Description: >-
-      A list that contains the EC2 security groups to assign to the Amazon EC2
-      instances in the Auto Scaling group.
   ScalingMin:
     Default: '1'
     AllowedPattern: '([0-9]+)'
@@ -61,6 +59,23 @@ Parameters:
       - ELB
 
 Resources:
+  ASGSecurityGrp:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPCID
+      GroupDescription: Inbound HTTP
+      SecurityGroupIngress: 
+        - Description: 'Allow HTTP IPv4 IN'
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: 
+            Fn::ImportValue: !Sub "${LoadBalancerStackName}-SG-ID"
+        - Description: 'Allow SSH'
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
   ASGLaunchTemplate: 
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -73,9 +88,7 @@ Resources:
         ImageId: !Ref LatestAmiId
         KeyName: !Ref KeyName
         SecurityGroupIds:
-          - !Select 
-            - 0
-            - !Ref ASGSecurityGroupList
+          - !Ref ASGSecurityGrp
         InstanceType: !Ref InstanceType
         UserData:
           Fn::Base64: !Sub |

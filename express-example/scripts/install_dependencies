@@ -1,0 +1,26 @@
+#!/bin/bash
+apt install nodejs npm jq -y
+cd /home/ubuntu/express-app-api
+npm install
+
+# check if aws cli version is 2.x
+if [[ ! -x "$(command -v aws)" ]] || [[ $(aws --version 2>&1 | cut -d " " -f1 | cut -d "/" -f2 | cut -d "." -f1) != "2" ]]; then
+    echo "aws-cli version 2.0.0 or higher is required"
+    cd /tmp
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip -u awscliv2.zip
+    echo "Unzipped aws cli"
+    ./aws/install -b /usr/bin
+    echo "aws cli installed"
+else
+    echo "aws-cli version 2.0.0 or higher is already installed"
+fi
+
+if [ -f "/home/ubuntu/express-app-api/env" ]
+then
+    rm -rf /home/ubuntu/express-app-api/env
+else
+    echo "env already removed"
+fi
+echo "MYENVVAR=$(aws ssm get-parameter --name "MYENVVAR" --with-decryption --query "Parameter" | jq '.Value' | sed 's/"//g')" >> /home/ubuntu/express-app-api/env
+
