@@ -126,6 +126,23 @@ Resources:
             Resource: '*'
       Roles:
         - !Ref InstanceRole
+
+  ScheduledActionUp:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref 'AutoScaleGrp'
+      MaxSize: 3
+      MinSize: 3
+      DesiredCapacity: 3
+      Recurrence: 0 8 * * *
+  ScheduledActionDown:
+    Type: AWS::AutoScaling::ScheduledAction
+    Properties:
+      AutoScalingGroupName: !Ref 'AutoScaleGrp'
+      MaxSize: 2
+      MinSize: 2
+      DesiredCapacity: 2
+      Recurrence: 0 18 * * *
   
   AutoScaleGrp:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
