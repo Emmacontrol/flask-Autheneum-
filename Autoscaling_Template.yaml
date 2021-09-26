@@ -9,8 +9,8 @@ Parameters:
     Description: "Name of an existing SSH Keypair to access the instance"
     Default: express-app
   LatestAmiId:
-        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-        Default: '/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id'
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id'
   InstanceType:
     Default: t3.micro
     Type: String
@@ -123,6 +123,10 @@ Resources:
               - 'cloudformation:GetTemplate'
               - 's3:Get*'
               - 's3:List*'
+              - "kms:Decrypt"
+              - "ssm:GetParametersByPath"
+              - "ssm:GetParameters"
+              - "ssm:GetParameter"
             Resource: '*'
       Roles:
         - !Ref InstanceRole
