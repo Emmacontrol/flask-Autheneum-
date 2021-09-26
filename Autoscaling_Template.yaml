@@ -10,7 +10,7 @@ Parameters:
     Default: express-app
   LatestAmiId:
         Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-        Default: '/aws/service/canonical/ubuntu/server/bionic/stable/current/amd6/hvm/ebs-gp2/ami-id'
+        Default: '/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id'
   InstanceType:
     Default: t3.micro
     Type: String
